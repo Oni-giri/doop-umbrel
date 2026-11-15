@@ -2,7 +2,7 @@ manifestVersion: 2
 id: yakitori-doop
 category: productivity
 name: Doop
-version: "0.14.0"
+version: "0.14.1"
 tagline: Multiplayer design canvas for people and AI agents
 icon: https://raw.githubusercontent.com/kgoedecke/doop/v0.14.0/desktop/app-icon.png
 description: >-
@@ -17,10 +17,11 @@ description: >-
   login and trusted network.
 
 
-  Set APP_YAKITORI_DOOP_URL in docker-compose.yml to the exact public URL
-  where users open Doop, including scheme and port. This is required for OAuth
-  integrations and agent connections that depend on absolute redirect URLs.
-  The default supports local access at http://umbrel.local only.
+  Sign-in uses the URL you opened the app from. Local access, remote access
+  (Tailscale or a custom domain) and Tor are trusted automatically, so OAuth
+  integrations and agent connections that depend on absolute redirect URLs work
+  without extra configuration. To pin a different canonical URL, override
+  BETTER_AUTH_URL in docker-compose.yml.
 
 
   The built-in AI design team is optional. Add provider credentials to enable
@@ -32,7 +33,8 @@ description: >-
   user-supplied integrations and agent tools; install it only on an Umbrel you
   trust and keep it updated.
 releaseNotes: >-
-  Initial Umbrel packaging of Doop 0.14.0 with persistent PostgreSQL storage.
+  Trust the origin you actually opened the app from, so sign-in works over
+  Tailscale and remote access instead of only http://umbrel.local.
 developer: Kai Goedecke
 website: https://doop.design
 repo: https://github.com/kgoedecke/doop

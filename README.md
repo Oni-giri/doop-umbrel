@@ -17,10 +17,12 @@ manifest version should match.
 The pre-start hook creates and retains random database, auth-signing and
 credential-encryption secrets under `${APP_DATA_DIR}/secrets`; preserve that
 directory when backing up or restoring the app. Database and canvas data are
-persisted in the app's data directory. To use OAuth and integrations that need an absolute redirect URL,
-set `APP_YAKITORI_DOOP_URL` in `docker-compose.yml` to the exact URL users open,
-including scheme and port (if any), before installing. The default only
-supports local access at `http://umbrel.local`.
+persisted in the app's data directory. Doop needs an absolute public origin for
+OAuth and integrations that use redirect URLs, so `exports.sh` derives
+`BETTER_AUTH_URL` from the Umbrel-provided `DEVICE_DOMAIN_NAME`, `APP_DOMAIN`,
+`APP_PROXY_PORT` and `APP_HIDDEN_SERVICE`. That covers local, remote-access and
+Tor launches without editing the package; override `BETTER_AUTH_URL` in
+`docker-compose.yml` only to pin a different canonical URL.
 
 Optional provider variables such as `ANTHROPIC_API_KEY`, SMTP settings and
 OAuth credentials can be added to the web service environment in
