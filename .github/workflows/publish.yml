@@ -4,17 +4,19 @@ on:
   push:
     tags:
       - "v*"
+  schedule:
+    - cron: "17 3 * * *"
   workflow_dispatch:
     inputs:
       upstream_ref:
         description: Upstream Doop tag or commit
-        required: true
-        default: v0.14.0
+        required: false
+        default: ""
         type: string
       image_tag:
         description: Image tag to publish
-        required: true
-        default: 0.14.0
+        required: false
+        default: ""
         type: string
 
 permissions:
@@ -27,11 +29,24 @@ jobs:
     steps:
       - name: Check out packaging
         uses: actions/checkout@v4
+      - name: Resolve upstream server release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          ref="${{ inputs.upstream_ref }}"
+          tag="${{ inputs.image_tag }}"
+          if [ -z "$ref" ]; then
+            ref="$(gh api repos/kgoedecke/doop/tags --paginate --jq '.[].name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)"
+          fi
+          if [ -z "$tag" ]; then tag="${ref#v}"; fi
+          printf 'ref=%s\ntag=%s\n' "$ref" "$tag" >> "$GITHUB_OUTPUT"
       - name: Check out upstream release
         uses: actions/checkout@v4
         with:
           repository: kgoedecke/doop
-          ref: ${{ inputs.upstream_ref || github.ref_name }}
+          ref: ${{ steps.release.outputs.ref }}
           path: upstream
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -47,8 +62,7 @@ jobs:
         with:
           images: ghcr.io/oni-giri/doop-umbrel
           tags: |
-            type=match,pattern=v(.*),group=1,enable=${{ github.event_name == 'push' }}
-            type=raw,value=${{ inputs.image_tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=raw,value=${{ steps.release.outputs.tag }}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
